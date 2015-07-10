@@ -1,0 +1,117 @@
+var RouteHelpers = (function() {
+  var exports = {},
+      slice = Array.prototype.slice;
+
+  <%= JsRouteHelpers.routes.reduce("") do |memo, (name, route)|
+    spec = route.path.spec.to_s
+    names = route.path.names - ["format"]
+    arguments = names + ["params"]
+
+    memo << <<-JS
+
+      exports.#{name.to_s.camelize(:lower)}Path = function(#{arguments.join(", ")}) {
+        return helper("#{spec}", slice.call(arguments));
+      };
+    JS
+    memo
+  end %>
+
+  // source code taken from jquery $.param
+  // https://github.com/jquery/jquery/blob/2e10af143b7eafb7142524f6534a62aee1910bd1/src/ajax.js#L507-L569
+  function param(a) {
+    var s = [],
+        add = function(key, value) {
+          // If value is a function, invoke it and return its value
+          value = _.isFunction(value) ? value() : value;
+          s[s.length] = encodeURIComponent(key) + "=" + encodeURIComponent(value);
+        };
+
+    // If an array was passed in, assume that it is an array of form elements.
+    if (_.isArray(a)) {
+      // Serialize the form elements
+      _.each(a, function() {
+        add(this.name, this.value);
+      });
+
+    } else {
+      // If traditional, encode the "old" way (the way 1.3.2 or older
+      // did it), otherwise encode params recursively.
+      for (var prefix in a) {
+        buildParams(prefix, a[prefix], undefined, add);
+      }
+    }
+
+    // Return the resulting serialization
+    return s.join("&").replace(/%20/g, "+");
+
+    function buildParams(prefix, obj, traditional, add) {
+      if (_.isArray(obj)) {
+        // Serialize array item.
+        _.each(obj, function(i, v) {
+          if (traditional || /\[\]$/.test(prefix)) {
+            // Treat each array item as a scalar.
+            add(prefix, v);
+
+          } else {
+            // If array item is non-scalar (array or object), encode its
+            // numeric index to resolve deserialization ambiguity issues.
+            // Note that rack (as of 1.0.0) can't currently deserialize
+            // nested arrays properly, and attempting to do so may cause
+            // a server error. Possible fixes are to modify rack's
+            // deserialization algorithm or to provide an option or flag
+            // to force array serialization to be shallow.
+            buildParams(prefix + "[" + (typeof v === "object" || _.isArray(v) ? i : "") + "]", v, traditional, add);
+          }
+        });
+
+      } else if (!traditional && obj != null && typeof obj === "object") {
+        // Serialize object item.
+        _.each(obj, function(k, v) {
+          buildParams(prefix + "[" + k + "]", v, traditional, add);
+        });
+
+      } else {
+        // Serialize scalar item.
+        add(prefix, obj);
+      }
+    }
+  };
+
+  function filterProps(o, fn) {
+    return Object.keys(o).reduce(function(memo, k) {
+      if (fn(k)) { memo[k] = o[k]; }
+      return memo;
+    }, {});
+  }
+
+  function fillSpecWithParams(spec, args, params) {
+    return spec.replace(/\((.+(:(\w+)))\)/, function(_, p1, p2, p3) {
+      // replace optional tokens (:foo) in spec with values from params
+      if (params[p3]) {
+        // if token matches a key in params, replace the token with the
+        // prop value and remove the prop from params
+        var replacement = params[p3];
+        delete params[p3];
+        return p1.replace(p2, replacement);
+      } else {
+        return "";
+      }
+    }).replace(/:\w+/g, function(_) {
+      // replace required tokens :foo in spec with values from args
+      var replacement = args.shift();
+      if (typeof replacement !== "string") { throw new Error("InvalidArguments"); }
+      return replacement;
+    });
+  }
+
+  function helper(spec, args) {
+    var argsLength = args.length,
+        params = typeof args[args.length - 1] === "object" ? args[args.length - 1] : {},
+        path = fillSpecWithParams(spec, args, params),
+        queryString = param(filterProps(params, function(k) { return params[k] !== null && params[k] !== undefined; }));
+
+    return (queryString.length) ? path.concat("?", queryString) : path;
+  }
+
+  return exports;
+})();
