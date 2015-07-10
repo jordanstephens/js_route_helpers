@@ -107,7 +107,7 @@ Again, note that JsRouteHelper method names are camelCase to follow javascript c
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/js_route_helpers/fork )
+1. Fork it ( https://github.com/jordanstephens/js_route_helpers/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
