@@ -16,65 +16,38 @@ var RouteHelpers = (function() {
     memo
   end %>
 
-  // source code taken from jquery $.param
-  // https://github.com/jquery/jquery/blob/2e10af143b7eafb7142524f6534a62aee1910bd1/src/ajax.js#L507-L569
+  // src: https://github.com/knowledgecode/jquery-param
   function param(a) {
-    var s = [],
-        add = function(key, value) {
-          // If value is a function, invoke it and return its value
-          value = _.isFunction(value) ? value() : value;
-          s[s.length] = encodeURIComponent(key) + "=" + encodeURIComponent(value);
-        };
+    var add = function(s, k, v) {
+      v = typeof v === "function" ? v() : v === null ? "" : v === undefined ? "" : v;
+      s[s.length] = encodeURIComponent(k) + "=" + encodeURIComponent(v);
+    }, buildParams = function (prefix, obj, s) {
+      var i, len, key;
 
-    // If an array was passed in, assume that it is an array of form elements.
-    if (_.isArray(a)) {
-      // Serialize the form elements
-      _.each(a, function() {
-        add(this.name, this.value);
-      });
-
-    } else {
-      // If traditional, encode the "old" way (the way 1.3.2 or older
-      // did it), otherwise encode params recursively.
-      for (var prefix in a) {
-        buildParams(prefix, a[prefix], undefined, add);
-      }
-    }
-
-    // Return the resulting serialization
-    return s.join("&").replace(/%20/g, "+");
-
-    function buildParams(prefix, obj, traditional, add) {
-      if (_.isArray(obj)) {
-        // Serialize array item.
-        _.each(obj, function(i, v) {
-          if (traditional || /\[\]$/.test(prefix)) {
-            // Treat each array item as a scalar.
-            add(prefix, v);
-
-          } else {
-            // If array item is non-scalar (array or object), encode its
-            // numeric index to resolve deserialization ambiguity issues.
-            // Note that rack (as of 1.0.0) can't currently deserialize
-            // nested arrays properly, and attempting to do so may cause
-            // a server error. Possible fixes are to modify rack's
-            // deserialization algorithm or to provide an option or flag
-            // to force array serialization to be shallow.
-            buildParams(prefix + "[" + (typeof v === "object" || _.isArray(v) ? i : "") + "]", v, traditional, add);
+      if (Object.prototype.toString.call(obj) === "[object Array]") {
+        for (i = 0, len = obj.length; i < len; i++) {
+          buildParams(prefix + "[" + (typeof obj[i] === "object" ? i : "") + "]", obj[i], s);
+        }
+      } else if (obj && obj.toString() === "[object Object]") {
+        for (key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            if (prefix) {
+              buildParams(prefix + "[" + key + "]", obj[key], s, add);
+            } else {
+              buildParams(key, obj[key], s, add);
+            }
           }
-        });
-
-      } else if (!traditional && obj != null && typeof obj === "object") {
-        // Serialize object item.
-        _.each(obj, function(k, v) {
-          buildParams(prefix + "[" + k + "]", v, traditional, add);
-        });
-
+        }
+      } else if (prefix) {
+        add(s, prefix, obj);
       } else {
-        // Serialize scalar item.
-        add(prefix, obj);
+        for (key in obj) {
+          add(s, key, obj[key]);
+        }
       }
-    }
+      return s;
+    };
+    return buildParams("", a, []).join("&").replace(/%20/g, "+");
   };
 
   function filterProps(o, fn) {
