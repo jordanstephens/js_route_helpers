@@ -69,7 +69,7 @@ var RouteHelpers = (function() {
       } else {
         return "";
       }
-    }).replace(/:\w+/g, function(_) {
+    }).replace(/:\w+/g, function(match) {
       // replace required tokens :foo in spec with values from args
       var replacement;
       if (match === ":format") {
