@@ -79,7 +79,7 @@ var RouteHelpers = (function() {
 
   function helper(spec, args) {
     var argsLength = args.length,
-        params = typeof args[args.length - 1] === "object" ? args[args.length - 1] : {},
+        params = typeof args[args.length - 1] === "object" ? args.pop() : {},
         path = fillSpecWithParams(spec, args, params),
         queryString = param(filterProps(params, function(k) { return params[k] !== null && params[k] !== undefined; }));
 
