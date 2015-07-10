@@ -99,7 +99,7 @@ var RouteHelpers = (function() {
     }).replace(/:\w+/g, function(_) {
       // replace required tokens :foo in spec with values from args
       var replacement = args.shift();
-      if (typeof replacement !== "string") { throw new Error("InvalidArguments"); }
+      if (["string", "number"].indexOf(typeof replacement) === -1) { throw new Error("InvalidArguments"); }
       return replacement;
     });
   }
