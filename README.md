@@ -7,20 +7,20 @@ For example, take the following route definition:
 **config/routes.rb**
 
     get "/users/:id", to: "users#show", as: :user
-    
+
 Rails gives you a `user_path` helper, which you can use like this:
 
 ```ruby
 user_path(3) # => "/users/3"
 ```
 
-JsRouteHelpers gives you similar javascript helpers to helper you work with your routes:
+JsRouteHelpers gives you a similar javascript helper:
 
 ```javascript
 RouteHelpers.userPath(3) // => "/users/3"
 ```
 
-**NOTE**: Javascript names are conventionally `camelCase`, so make sure to use the camelCase versions of your route helpers when calling them client-side.
+**NOTE**: Javascript names are conventionally camelCase, so make sure to use the camelCase versions of your route helpers when calling them client-side.
 
 ## Installation
 
@@ -39,6 +39,8 @@ Or install it yourself as:
     $ gem install js_route_helpers
 
 ## Usage
+
+### Setup
 
 1. Define a route pattern whitelist in an initializer. Each item in the list should be a regular expression. If a route helper's name matches any pattern in the list, it will be exposed to the client in the javascript file.
 
@@ -67,6 +69,8 @@ Or install it yourself as:
     RouteHelpers.userPath(3, { param: "value", format: "json" }) // => "/users/3.json?param=value"
     ```
 
+* * *
+
 **Important!**
 
 You may need to flush the asset cache after making changes to `config/routes.rb` in order to force the changes to propagate into `route_helpers.js`. You can do this by running
@@ -76,6 +80,8 @@ $ rake tmp:cache:clear
 ```
 
 This shouldn't be _too_ much of a nuisance in the long run, as routes tend to be fairly stable.
+
+* * *
 
 ### Examples
 
