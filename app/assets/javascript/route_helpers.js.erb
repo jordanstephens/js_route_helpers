@@ -71,7 +71,13 @@ var RouteHelpers = (function() {
       }
     }).replace(/:\w+/g, function(_) {
       // replace required tokens :foo in spec with values from args
-      var replacement = args.shift();
+      var replacement;
+      if (match === ":format") {
+        replacement = params["format"];
+        delete params["format"];
+      } else {
+        replacement = args.shift();
+      }
       if (["string", "number"].indexOf(typeof replacement) === -1) { throw new Error("InvalidArguments"); }
       return replacement;
     });
