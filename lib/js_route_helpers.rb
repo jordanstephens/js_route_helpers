@@ -9,6 +9,7 @@ module JsRouteHelpers
   end
 
   def self.routes
+    ::Rails.application.reload_routes!
     ::Rails.application.routes.named_routes.routes.select do |name, route|
       @whitelist_patterns.any? { |r| r.match(name) }
     end
